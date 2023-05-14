@@ -316,12 +316,7 @@ class StaticTile extends GameObject {
     super.render();
 
     ctx.fillStyle = COLOR_STATIC_TILE;
-    //ctx.fillRect(this.x, this.y, this.width, this.height);
-    ctx.beginPath();
-    ctx.moveTo(400, 250);
-    ctx.lineTo(420, 250);
-    ctx.lineTo(420, 270);
-    ctx.fill();
+    ctx.fillRect(this.x, this.y, this.width, this.height);
   }
 }
 
