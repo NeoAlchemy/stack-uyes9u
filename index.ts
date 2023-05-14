@@ -257,6 +257,7 @@ class Game {
 /* ------------------------------ GAME MECHANICS ---------------------------- */
 const COLOR_BACKGROUND: string = '#000';
 const COLOR_TILE: string = '#0F4';
+const COLOR_STATIC_TILE: string = '#F40';
 const TILE_WIDTH: number = 100;
 const TILE_HEIGHT: number = 10;
 const SPEED: number = 2;
@@ -314,8 +315,13 @@ class StaticTile extends GameObject {
   render() {
     super.render();
 
-    ctx.fillStyle = '#F00';
-    ctx.fillRect(this.x, this.y, this.width, this.height);
+    ctx.fillStyle = COLOR_STATIC_TILE;
+    //ctx.fillRect(this.x, this.y, this.width, this.height);
+    ctx.beginPath();
+    ctx.moveTo(400, 250);
+    ctx.lineTo(420, 250);
+    ctx.lineTo(420, 270);
+    ctx.fill();
   }
 }
 
@@ -407,33 +413,46 @@ class MainLevel extends Scene {
   }
 
   onActiveTileStopped() {
-    if (this.tile.command == 'STOP' && this.isTileStacked()) {
+    if (this.tile.command == 'STOP' && this.isTileStackable()) {
+      // get previous tile
       let stackCount = this.stack.children.length;
       let prevTile = this.stack.children[stackCount - 1];
-      let width = TILE_WIDTH;
+
+      //default the width and x location
+      let width = prevTile.width;
       let x = this.tile.x;
+
       if (this.tile.x > prevTile.x) {
+        // tile is to the right of the prev tile
         width = prevTile.x + prevTile.width - this.tile.x;
       } else if (this.tile.x + this.tile.width < prevTile.x + prevTile.width) {
+        // tile is to the left of prev tile
         width = prevTile.width - (prevTile.x - this.tile.x);
         x = prevTile.x;
       }
+
+      // add new static tile
       this.stack.children.push(
         new StaticTile(x, this.tile.y, width, this.tile.height)
       );
+      // add new tile above
       this.newTile(width);
-    } else if (this.tile.command == 'STOP' && !this.isTileStacked()) {
+    } else if (this.tile.command == 'STOP' && !this.isTileStackable()) {
+      // tile stopped and is not stackable
       game = new Game(new MainLevel());
     }
   }
 
-  isTileStacked() {
+  isTileStackable() {
+    // find prev tile
     let stackCount = this.stack.children.length;
     let prevTile = this.stack.children[stackCount - 1];
+
+    // is tile above prev tile to be stackable
     if (
-      (this.tile.x + this.tile.width > prevTile.x &&
-        this.tile.x + this.tile.width < prevTile.x + prevTile.width) ||
-      (this.tile.x > prevTile.x && this.tile.x < prevTile.x + prevTile.width)
+      (this.tile.x + this.tile.width >= prevTile.x &&
+        this.tile.x + this.tile.width <= prevTile.x + prevTile.width) ||
+      (this.tile.x >= prevTile.x && this.tile.x <= prevTile.x + prevTile.width)
     ) {
       return true;
     } else {
@@ -443,14 +462,20 @@ class MainLevel extends Scene {
 
   newTile(width: number) {
     this.tile.x += canvas.width; //move tile out of sight
+
+    // create new tile
     let stackCount = this.stack.children.length;
     let aTile = new Tile(
       this.stack.children[stackCount - 1].y - TILE_HEIGHT,
       0,
       width
     );
+
+    // assign new tile and add to scene
     this.tile = aTile;
     this.add(aTile);
+
+    // check collisions
     this.physics.onCollideWalls(
       this.tile,
       this.tile.switchDirection,
