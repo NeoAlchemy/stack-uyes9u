@@ -195,7 +195,7 @@ class MainLevel extends Scene {
       this.newTile(width);
     } else if (this.tile.command == 'STOP' && !this.isTileStackable()) {
       // tile stopped and is not stackable
-      game = new Game(new MainLevel());
+      new Game(new MainLevel());
     }
   }
 
